@@ -44,29 +44,30 @@ from reportlab.platypus.tables     import Table
 from shortuuid                     import uuid
 from sys                           import argv
 
-def qrcode(prefix, nchar, verbose):
-  text = prefix + uuid()[:nchar]
-  if verbose: print text
+def qrcode(args):
+  text = args['prefix'] + uuid()[:args['nchar']]
+  if args['verbose']: print text
   return QrCodeWidget(text)
 
-def qrcodes(prefix, nchar, nrow, ncol, qrsize, verbose):
+def qrcodes(args):
   rows = []
-  for r in range(1, nrow+1):
+  for r in range(1, args['nrow']+1):
     row = []
-    for c in range(1, ncol+1):
-      qrc = qrcode(prefix, nchar, verbose)
-      bounds = qrc.getBounds()
-      label  = Drawing(qrsize, qrsize, transform=[qrsize/bounds[2], 0, 0,
-                                                  qrsize/bounds[3], 0, 0])
-      label.add(qrc)
+    for c in range(1, args['ncol']+1):
+      widget = qrcode(args)
+      bounds = widget.getBounds()
+      label  = Drawing(args['qrsize'], args['qrsize'],
+                       transform=[args['qrsize']/bounds[2], 0, 0,
+                                  args['qrsize']/bounds[3], 0, 0])
+      label.add(widget)
       row.append(label)
     rows.append(row)
   return rows
 
-def table(doc, style, prefix, nchar, nrow, ncol, qrsize, verbose):
-  label_widths  = [doc.width  / ncol] * ncol
-  label_heights = [(doc.height - style.leading) / nrow] * nrow
-  data = qrcodes(prefix, nchar, nrow, ncol, qrsize, verbose)
+def table(doc, style, args):
+  data = qrcodes(args)
+  label_widths  = [doc.width  / args['ncol']] * args['ncol']
+  label_heights = [(doc.height - style.leading) / args['nrow']] * args['nrow']
   tbl = Table(data, colWidths=label_widths, rowHeights=label_heights,
               hAlign='CENTER', vAlign='MIDDLE')
   tbl.setStyle(TableStyle([ ('ALIGN'    , (0,0), (-1,-1), 'CENTER'),
@@ -83,15 +84,15 @@ def kludge(canvas, doc):
   frame.bottomPadding = 0
   canvas.saveState()
 
-def pdf(prefix, nchar, ncol, nrow, top, left, right, bottom, qrsize, pdfpath, verbose):
+def pdf(args):
   style = getSampleStyleSheet()['Normal']
   cmd = Paragraph(' '.join(['qrlabels']+argv[1:]), style)
   doc = SimpleDocTemplate(pdfpath, pagesize=letter,
-                          rightMargin  = right,
-                          leftMargin   = left,
-                          topMargin    = top - style.leading,
-                          bottomMargin = bottom)
-  t = table(doc, style, prefix, nchar, nrow, ncol, qrsize, verbose)
+                          rightMargin  = args['right'],
+                          leftMargin   = args['left',
+                          topMargin    = args['top'] - style.leading,
+                          bottomMargin = args['bottom'])
+  t = table(doc, style, args)
   return doc.build([cmd, t], onFirstPage=kludge, onLaterPages=kludge)
 
 def parse(args):
@@ -116,7 +117,4 @@ def parse(args):
   }
 
 def main():
-  args = parse(docopt(__doc__, version='qrlabels 0.1'))
-  pdf(args['prefix'], args['nchar'], args['ncol'], args['nrow'],
-      args['top'], args['left'], args['right'], args['bottom'],
-      args['qrsize'], args['pdfpath'], args['verbose'])
+  pdf(parse(docopt(__doc__, version='qrlabels 0.1')))
