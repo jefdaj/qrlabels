@@ -11,7 +11,7 @@
 #      - 0.45 margins for all
 
 '''
-Generates PDFs of QR codes to print on labels.
+Generates sheets of QR codes that can be printed on labels.
 
 Usage:
   qrlabels [-v] -p PREFIX -n NCHAR -m MARGINS -d DIMENSIONS -s SIDE PDFPATH
@@ -60,9 +60,11 @@ def qrcodes(args):
     for c in range(1, args['ncol']+1):
       widget = qrcode(args)
       bounds = widget.getBounds()
-      label  = Drawing(args['side'], args['side'],
-                       transform=[args['side']/bounds[2], 0, 0,
-                                  args['side']/bounds[3], 0, 0])
+      label  = Drawing(
+        args['side'], args['side'],
+        transform=[args['side']/bounds[2], 0, 0,
+                   args['side']/bounds[3], 0, 0]
+      )
       label.add(widget)
       row.append(label)
     rows.append(row)
@@ -72,14 +74,21 @@ def qrcodes(args):
 
 def table(doc, style, args):
   data = qrcodes(args)
-  label_widths  = [doc.width  / args['ncol']] * args['ncol']
-  label_heights = [(doc.height - style.leading) / args['nrow']] * args['nrow']
-  tbl = Table(data, colWidths=label_widths, rowHeights=label_heights,
-              hAlign='CENTER', vAlign='MIDDLE')
-  tbl.setStyle(TableStyle([ ('ALIGN'    , (0,0), (-1,-1), 'CENTER'),
-                            ('VALIGN'   , (0,0), (-1,-1), 'MIDDLE'),
-                            ('INNERGRID', (0,0), (-1,-1), 1.0, lightgrey),
-                            ('BOX'      , (0,0), (-1,-1), 1.0, lightgrey) ]))
+  widths  = [ doc.width                   / args['ncol']] * args['ncol']
+  heights = [(doc.height - style.leading) / args['nrow']] * args['nrow']
+  tbl = Table(
+    data,
+    colWidths  = widths,
+    rowHeights = heights,
+    hAlign     = 'CENTER',
+    vAlign     = 'MIDDLE'
+  )
+  tbl.setStyle(TableStyle([
+    ('ALIGN'    , (0,0), (-1,-1), 'CENTER'),
+    ('VALIGN'   , (0,0), (-1,-1), 'MIDDLE'),
+    ('INNERGRID', (0,0), (-1,-1), 1.0, lightgrey),
+    ('BOX'      , (0,0), (-1,-1), 1.0, lightgrey)
+  ]))
   return tbl
 
 def kludge(canvas, doc):
@@ -93,11 +102,14 @@ def kludge(canvas, doc):
 def pdf(args):
   style = getSampleStyleSheet()['Normal']
   cmd = Paragraph(' '.join(['qrlabels']+argv[1:]), style)
-  doc = SimpleDocTemplate(args['pdfpath'], pagesize=letter,
-                          rightMargin  = args['right'],
-                          leftMargin   = args['left'],
-                          topMargin    = args['top'] - style.leading,
-                          bottomMargin = args['bottom'])
+  doc = SimpleDocTemplate(
+    args['pdfpath'],
+    pagesize     = letter,
+    rightMargin  = args['right'],
+    leftMargin   = args['left'],
+    topMargin    = args['top'] - style.leading,
+    bottomMargin = args['bottom']
+  )
   t = table(doc, style, args)
   return doc.build([cmd, t], onFirstPage=kludge, onLaterPages=kludge)
 

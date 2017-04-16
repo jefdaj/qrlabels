@@ -1,10 +1,12 @@
 qrlabels
 ========
 
-Generates PDFs of QR codes to print on labels. See the
-[examples](https://github.com/jefdaj/qrlabels/tree/master/examples) for input
-and output formats. And remember to use the highest quality print settings for
-readability of small QR codes.
+Generates sheets of QR codes that can be printed on labels. I use the
+[example commands](https://github.com/jefdaj/qrlabels/tree/master/examples) with
+["Tough Spot" labels](https://www.amazon.com/Diversified-Tough-Spots-SPOT-1000-Polyvinyl-Diameter/dp/B00APK3EJE)
+to track laboratory samples, but the program should work for anything that
+comes as a grid of stickers on regular-size paper. Be sure to use the highest
+quality print settings for readability of small QR codes.
 
 ```
 Usage:
@@ -28,10 +30,12 @@ Options:
      PDFPATH     Where to save the output PDF
 ```
 
-Features I plan to implement eventually:
+Features I plan to implement eventually (but would love help with!):
 
-* "Test mode" that prints size information on the paper
+* "Test mode" that prints rulers or something on the paper
 * Accept a list of codes from a file rather than generating them
 * Groups of repeated barcodes for when you want more than one of each
-* Keep a history file of used QR codes to avoid accidental repeats
+* Keep a history file of previous codes to prevent short "UUIDs" from colliding
 * Print multiple pages at once
+* Add optional text labels below/around the QR codes
+* Support paper sizes besides letter
