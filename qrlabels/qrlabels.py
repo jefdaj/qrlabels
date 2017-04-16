@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+# TODO figure out lingering margin issues:
+#      - when size margins made really big, bottom increases too
+#      - nrow = 1 or 20 expands to two pages
+
 # TODO add features:
 #      - do multiple pages at once (via -n (npages) flag or passing codes)
 #      - flag to print a bunch of sizes for testing?
