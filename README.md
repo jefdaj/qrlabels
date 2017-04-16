@@ -25,7 +25,6 @@ Things I plan to implement eventually:
 * Keep a history file of used QR codes to avoid accidental repeats
 * Accept a list of codes from a file rather than generating them
 * Print multiple pages at once
-* Allow separate control of left, right, top, and bottom margins
 
 Things I probably won't bother to implement, but would still happily merge:
 
