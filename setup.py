@@ -3,8 +3,8 @@
 from setuptools import setup
 
 setup(
-  name = 'labqr',
+  name = 'qrlabels',
   version = '0.1',
-  packages = ['labqr'],
-  entry_points = {'console_scripts': ['labqr=labqr:main']}
+  packages = ['qrlabels'],
+  entry_points = {'console_scripts': ['qrlabels=qrlabels:main']}
 )

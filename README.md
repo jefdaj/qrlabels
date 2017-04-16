@@ -6,7 +6,7 @@ See the [examples]() for input and output formats.
 
 ```
 Usage:
-  labqr [-v] [-p <prefix>] (-i <idlist> | -n <number>) [-h <history>] [-o <outdir>]
+  qrlabels [-v] [-p <prefix>] (-i <idlist> | -n <number>) [-h <history>] [-o <outdir>]
 
 Options:
   -v            Print debugging messages to stdout [defualt: False]

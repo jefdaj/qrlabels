@@ -27,7 +27,7 @@
 Generates PDFs of QR codes to print on labels.
 
 Usage:
-  labqr [-v] [-p <prefix>] (-i <idlist> | -n <number>) [-h <history>] [-o <outdir>]
+  qrlabels [-v] [-p <prefix>] (-i <idlist> | -n <number>) [-h <history>] [-o <outdir>]
 
 Options:
   -v            Print debugging messages to stdout [defualt: False]
@@ -64,7 +64,7 @@ def save_pdf(prefix, nchar, ncol, nrow, filename):
   # TODO also add multiple pages
   # TODO are l/r, t/b always the same? use one flag if so
   s = getSampleStyleSheet()['Normal']
-  wm = Paragraph(' '.join(['labqr']+argv[1:]), s)
+  wm = Paragraph(' '.join(['qrlabels']+argv[1:]), s)
   doc = SimpleDocTemplate(filename, pagesize=letter,
                           rightMargin=0.45*inch, leftMargin=0.45*inch,
                           topMargin=0.45*inch-s.leading, bottomMargin=0.45*inch)
@@ -74,7 +74,7 @@ def save_pdf(prefix, nchar, ncol, nrow, filename):
   rws = [qw] * ncol
   rhs = [qh] * nrow
   # ls  = sqrt(2) * (0.35/2) * inch # width/height of a square that will fit inside the circle
-  ls = 0.35 * inch
+  ls = 0.18 * inch
 
   rows = []
   for r in range(1, nrow+1):
@@ -104,7 +104,7 @@ def save_pdf(prefix, nchar, ncol, nrow, filename):
   return doc.build([wm, t], onFirstPage=fix_page_layout, onLaterPages=fix_page_layout)
 
 def main():
-  args = docopt(__doc__, version='labqr 0.1')
+  args = docopt(__doc__, version='qrlabels 0.1')
   global verbose; verbose = args['-v'] # TODO need to cast as boolean?
   ids = args['-i']
   if args['-i']:
@@ -112,5 +112,5 @@ def main():
   else:
     # 6 letters seems to be enough for actual printed QR codes, but not enough
     # for data points from large files. No need for those yet I guess.
-    save_pdf(args['-p'], 6, 12, 16, 'test.pdf')
+    save_pdf(args['-p'], 7, 12, 16, 'test.pdf')
   out = args['-o']

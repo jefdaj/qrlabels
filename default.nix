@@ -1,2 +1,2 @@
 with import <nixpkgs> {};
-callPackage ./labqr.nix {}
+callPackage ./qrlabels.nix {}

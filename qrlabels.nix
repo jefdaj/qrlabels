@@ -2,7 +2,7 @@
 with pythonPackages;
 
 buildPythonPackage {
-  name = "labqr-0.1";
+  name = "qrlabels-0.1";
   namePrefix = "";
   src = ./.;
   propagatedBuildInputs = [
