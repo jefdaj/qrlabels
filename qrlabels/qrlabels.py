@@ -1,23 +1,18 @@
 #!/usr/bin/env python
 
-# TODO refactor CLI:
-#      - remove idlist for now
-#      - remove history for now
-#      - replace outdir with a pdf path
+# TODO refactor code:
 #      - add a flag for each measurement i've been changing
+#      - break up into smaller, more meaningful functions
+#      - make variable names sensible
 
 # TODO quick documentation:
 #      - print settings (100% scale, highest quality)
 #      - examples (do after CLI)
 
-# TODO refactor code:
-#      - break up into smaller, more meaningful functions
-#      - make variable names sensible
-
 # TODO add features:
 #      - print list of codes from file given on CLI
 #      - verbose option that prints codes
-#      - do multiple pages at once (via flag or passing codes)
+#      - do multiple pages at once (via -n (npages) flag or passing codes)
 #      - flag to print a bunch of sizes for testing?
 #      - do groups of repeated barcodes (and generate proper innergrid)
 
@@ -31,15 +26,14 @@
 Generates PDFs of QR codes to print on labels.
 
 Usage:
-  qrlabels [-v] [-p <prefix>] (-i <idlist> | -n <number>) [-h <history>] [-o <outdir>]
+  qrlabels [-v] -p <prefix> <pdfout>
+  qrlabels --help
 
 Options:
-  -v            Print debugging messages to stdout [defualt: False]
-  -p <prefix>   Text to append the UUIDs to, for example "knlab/jj/". [default: ]
-  -i <idlist>   List of UUIDs to generate QR codes for
-  -n <number>   Number of UUIDs to generate
-  -h <history>  Append UUIDs to a history file to prevent accidental repeats
-  -o <outdir>   Where to write the QR code images [default: .]
+  --help       Show this text
+  -v           Print debugging messages to stdout [defualt: False]
+  -p <prefix>  Text to append the UUIDs to, for example "http://my.site/qrcode/"
+     <pdfout>  Where to write the QR code images
 '''
 
 from reportlab.lib.colors       import lightgrey
@@ -95,9 +89,4 @@ def save_pdf(prefix, nchar, ncol, nrow, filename):
 def main():
   args = docopt(__doc__, version='qrlabels 0.1')
   global verbose; verbose = args['-v']
-  ids = args['-i']
-  if args['-i']:
-    ids = args['-i']
-  else:
-    save_pdf(args['-p'], 7, 12, 16, 'test.pdf')
-  out = args['-o']
+  save_pdf(args['-p'], 7, 12, 16, args['<pdfout>'])
