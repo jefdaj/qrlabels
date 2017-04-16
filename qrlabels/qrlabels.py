@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
 # TODO add features:
-#      - flags for the margins
-#      - flags for nrow, ncol
-#      - flag for nchar
 #      - print list of codes from file given on CLI
 #      - verbose option that prints codes
 #      - do multiple pages at once (via -n (npages) flag or passing codes)
@@ -20,13 +17,20 @@
 Generates PDFs of QR codes to print on labels.
 
 Usage:
-  qrlabels [-v] -p <prefix> <pdfpath>
+  qrlabels [-v] -p <prefix> -t <top> -l <left> [-r <right>] [-b <bottom>] -q <qrsize> --nrow <rows> --ncol <cols> <pdfpath>
   qrlabels --help
 
 Options:
   --help        Show this text
   -v            Print debugging messages to stdout [defualt: False]
   -p <prefix>   Text to append the UUIDs to, for example "http://my.site/qrcode/"
+  -t <top>      Top    margin in inches
+  -l <left>     Left   margin in inches
+  -r <right>    Right  margin in inches (defaults to matching the left)
+  -b <bottom>   Bottom margin in inches (defaults to matching the top)
+  -q <qrsize>   Height and width of each QR code in inches
+  --nrow <rows>  How many rows    of QR codes per page
+  --ncol <cols>  How many columns of QR codes per page
      <pdfpath>  Where to write the QR code images
 '''
 
@@ -72,22 +76,45 @@ def table(doc, style, prefix, nchar, nrow, ncol, qrsize):
 
 def kludge(canvas, doc):
   frame = doc.pageTemplates[0].frames[0]
-  frame.leftPadding=frame.rightPadding=frame.topPadding=frame.bottomPadding=0
+  frame.leftPadding   = 0
+  frame.rightPadding  = 0
+  frame.topPadding    = 0
+  frame.bottomPadding = 0
   canvas.saveState()
 
-def pdf(prefix, nchar, ncol, nrow, filename):
+def pdf(prefix, nchar, ncol, nrow, top, left, right, bottom, qrsize, pdfpath):
   style = getSampleStyleSheet()['Normal']
-  wm = Paragraph(' '.join(['qrlabels']+argv[1:]), style)
-  doc = SimpleDocTemplate(filename, pagesize=letter,
-                          rightMargin  = 0.45*inch,
-                          leftMargin   = 0.45*inch,
-                          topMargin    = 0.45*inch-style.leading,
-                          bottomMargin = 0.45*inch)
-  qrsize = 0.18 * inch
+  cmd = Paragraph(' '.join(['qrlabels']+argv[1:]), style)
+  doc = SimpleDocTemplate(pdfpath, pagesize=letter,
+                          rightMargin  = right,
+                          leftMargin   = left,
+                          topMargin    = top - style.leading,
+                          bottomMargin = bottom)
   t = table(doc, style, prefix, nchar, nrow, ncol, qrsize)
-  return doc.build([wm, t], onFirstPage=kludge, onLaterPages=kludge)
+  return doc.build([cmd, t], onFirstPage=kludge, onLaterPages=kludge)
+
+def parse(args):
+  top     = args['-t']
+  left    = args['-l']
+  right   = args['-r']
+  bottom  = args['-b']
+  if not right : right  = left
+  if not bottom: bottom = top
+  return {
+    # 'verbose' : args['-v'], # TODO add this
+    'prefix'  : args['-p'],
+    'top'     : float(top)    * inch,
+    'left'    : float(left)   * inch,
+    'right'   : float(right)  * inch,
+    'bottom'  : float(bottom) * inch,
+    'qrsize'  : float(args['-q']) * inch,
+    'ncol'    : int(args['--ncol']),
+    'nrow'    : int(args['--nrow']),
+    'pdfpath' : args['<pdfpath>']
+  }
 
 def main():
-  args = docopt(__doc__, version='qrlabels 0.1')
-  global verbose; verbose = args['-v']
-  pdf(args['-p'], 7, 12, 16, args['<pdfpath>'])
+  args = parse(docopt(__doc__, version='qrlabels 0.1'))
+  pdf(args['prefix'], 7, args['ncol'], args['nrow'],
+      args['top'], args['left'], args['right'], args['bottom'],
+      args['qrsize'], args['pdfpath'])
