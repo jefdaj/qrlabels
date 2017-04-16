@@ -15,13 +15,14 @@
 Generates PDFs of QR codes to print on labels.
 
 Usage:
-  qrlabels [-v] -p <prefix> -t <top> -l <left> [-r <right>] [-b <bottom>] -q <qrsize> --nrow <rows> --ncol <cols> <pdfpath>
+  qrlabels [-v] -p <prefix> -c <nchar> -t <top> -l <left> [-r <right>] [-b <bottom>] -q <qrsize> --nrow <rows> --ncol <cols> <pdfpath>
   qrlabels --help
 
 Options:
   --help        Show this text
   -v            Print debugging messages to stdout [defualt: False]
   -p <prefix>   Text to append the UUIDs to, for example "http://my.site/qrcode/"
+  -c <nchar>    Number of characters in the random portion of each QR code
   -t <top>      Top    margin in inches
   -l <left>     Left   margin in inches
   -r <right>    Right  margin in inches (defaults to matching the left)
@@ -108,6 +109,7 @@ def parse(args):
     'right'   : float(right)  * inch,
     'bottom'  : float(bottom) * inch,
     'qrsize'  : float(args['-q']) * inch,
+    'nchar'   : int(args['-c']),
     'ncol'    : int(args['--ncol']),
     'nrow'    : int(args['--nrow']),
     'pdfpath' : args['<pdfpath>']
@@ -115,6 +117,6 @@ def parse(args):
 
 def main():
   args = parse(docopt(__doc__, version='qrlabels 0.1'))
-  pdf(args['prefix'], 7, args['ncol'], args['nrow'],
+  pdf(args['prefix'], args['nchar'], args['ncol'], args['nrow'],
       args['top'], args['left'], args['right'], args['bottom'],
       args['qrsize'], args['pdfpath'], args['verbose'])
