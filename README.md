@@ -1,18 +1,33 @@
 qrlabels
 ========
 
-Generates PDFs of QR codes to print on labels.
-See the [examples]() for input and output formats.
+Generates PDFs of QR codes to print on labels. See the
+[examples](https://github.com/jefdaj/qrlabels/tree/master/examples) for input
+and output formats.
 
 ```
 Usage:
-  qrlabels [-v] [-p <prefix>] (-i <idlist> | -n <number>) [-h <history>] [-o <outdir>]
+  qrlabels [-v] -p <prefix> <pdfpath>
+  qrlabels --help
 
 Options:
+  --help        Show this text
   -v            Print debugging messages to stdout [defualt: False]
-  -p <prefix>   Text to append the UUIDs to, for example "knlab/jj/". [default: ]
-  -i <idlist>   List of UUIDs to generate QR codes for
-  -n <number>   Number of UUIDs to generate
-  -h <history>  Append UUIDs to a history file to prevent accidental repeats
-  -o <outdir>   Where to write the QR code images [default: .]
+  -p <prefix>   Text to append the UUIDs to, for example "http://my.site/qrcode/"
+     <pdfpath>  Where to write the QR code images
 ```
+
+Make sure to use the highest quality print settings when printing small codes;
+it makes a large difference in readability on smartphones.
+
+Things I plan to implement eventually:
+
+* Keep a history file of used QR codes to avoid accidental repeats
+* Accept a list of codes from a file rather than generating them
+* Print multiple pages at once
+* Allow separate control of left, right, top, and bottom margins
+
+Things I probably won't bother to implement, but would still happily merge:
+
+* Accept units other than inches
+* Just about anything useful

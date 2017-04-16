@@ -1,4 +1,5 @@
 *.egg-*
+*.pdf
 *.pyc
 *.sw*
 result
