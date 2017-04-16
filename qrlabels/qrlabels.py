@@ -4,11 +4,6 @@
 #      - when size margins made really big, bottom increases too
 #      - nrow = 1 or 20 expands to two pages
 
-# TODO add features:
-#      - do multiple pages at once (via -n (npages) flag or passing codes)
-#      - flag to print a bunch of sizes for testing?
-#      - do groups of repeated barcodes (and generate proper innergrid)
-
 # TODO remove settings once printed on paper:
 #      - any qr size .30-.35 works great with spot-2000 on white boxes
 #      - 0.18 is best for spot-1000 on the sides of 200uL tubes (trickiest location)
@@ -19,34 +14,39 @@
 Generates PDFs of QR codes to print on labels.
 
 Usage:
-  qrlabels [-v] -p <prefix> -c <nchar> -t <top> -l <left> [-r <right>] [-b <bottom>] -q <qrsize> --nrow <rows> --ncol <cols> <pdfpath>
-  qrlabels --help
+  qrlabels [-v] -p PREFIX -n NCHAR -m MARGINS -d DIMENSIONS -s SIDE PDFPATH
+  qrlabels (-h | --help)
 
 Options:
-  --help        Show this text
-  -v            Print debugging messages to stdout [defualt: False]
-  -p <prefix>   Text to append the UUIDs to, for example "http://my.site/qrcode/"
-  -c <nchar>    Number of characters in the random portion of each QR code
-  -t <top>      Top    margin in inches
-  -l <left>     Left   margin in inches
-  -r <right>    Right  margin in inches (defaults to matching the left)
-  -b <bottom>   Bottom margin in inches (defaults to matching the top)
-  -q <qrsize>   Height and width of each QR code in inches
-  --nrow <rows>  How many rows    of QR codes per page
-  --ncol <cols>  How many columns of QR codes per page
-     <pdfpath>  Where to write the QR code images
+  -h, --help     Show this text
+  -v             Print the text of each QR code [defualt: False]
+  -p PREFIX      Text to start QR codes with, for example "http://my.site/qrcode/"
+  -n NCHAR       Number of characters in the random portion of each QR code
+  -d DIMENSIONS  Dimensions of the QR codes table in rows and columns,
+                 for example "4x6" or "12x16". No spaces!
+  -s SIDE        Length of each side of the QR codes. Allowed units: mm, cm, in, px
+  -m MARGINS     Comma-separated margins. Specify one, two, or all four:
+                 * one  means all margins are equal
+                 * two  means top/bottom, left/right
+                 * four means top, bottom, left, right
+                 Allowed units are mm, cm, in, px. No spaces!
+                 Examples: "10mm,20mm" "1in" "25px,25px,20px,20px"
+     PDFPATH     Where to save the output PDF
 '''
 
 from docopt                        import docopt
 from reportlab.graphics.barcode.qr import QrCodeWidget
 from reportlab.graphics.shapes     import Drawing
 from reportlab.lib.colors          import lightgrey
-from reportlab.lib.pagesizes       import letter, inch
+from reportlab.lib.pagesizes       import letter
 from reportlab.lib.styles          import getSampleStyleSheet
+from reportlab.lib.units           import mm, cm, inch
 from reportlab.platypus            import SimpleDocTemplate, TableStyle, Paragraph
 from reportlab.platypus.tables     import Table
 from shortuuid                     import uuid
 from sys                           import argv
+
+### generate qrcodes ###
 
 def qrcode(args):
   text = args['prefix'] + uuid()[:args['nchar']]
@@ -60,13 +60,15 @@ def qrcodes(args):
     for c in range(1, args['ncol']+1):
       widget = qrcode(args)
       bounds = widget.getBounds()
-      label  = Drawing(args['qrsize'], args['qrsize'],
-                       transform=[args['qrsize']/bounds[2], 0, 0,
-                                  args['qrsize']/bounds[3], 0, 0])
+      label  = Drawing(args['side'], args['side'],
+                       transform=[args['side']/bounds[2], 0, 0,
+                                  args['side']/bounds[3], 0, 0])
       label.add(widget)
       row.append(label)
     rows.append(row)
   return rows
+
+### generate pdf ###
 
 def table(doc, style, args):
   data = qrcodes(args)
@@ -91,33 +93,59 @@ def kludge(canvas, doc):
 def pdf(args):
   style = getSampleStyleSheet()['Normal']
   cmd = Paragraph(' '.join(['qrlabels']+argv[1:]), style)
-  doc = SimpleDocTemplate(pdfpath, pagesize=letter,
+  doc = SimpleDocTemplate(args['pdfpath'], pagesize=letter,
                           rightMargin  = args['right'],
-                          leftMargin   = args['left',
+                          leftMargin   = args['left'],
                           topMargin    = args['top'] - style.leading,
                           bottomMargin = args['bottom'])
   t = table(doc, style, args)
   return doc.build([cmd, t], onFirstPage=kludge, onLaterPages=kludge)
 
+### parse arguments ###
+
+def pixels(desc):
+  lengths = {'mm': mm, 'cm': cm, 'in': inch, 'px': 1}
+  for unit in lengths:
+    index = desc.rfind(unit)
+    if index != -1:
+      return float(desc[:index]) * lengths[unit]
+  raise Exception('Invalid measurement: %s' % desc)
+
+def margins(desc):
+  descs = desc.split(',')
+  if len(descs) == 1:
+    top = bottom = left = right = pixels(descs[0])
+  elif len(descs) == 2:
+    top  = bottom = pixels(descs[0])
+    left = right  = pixels(descs[1])
+  elif len(descs) == 4:
+    top    = pixels(descs[0])
+    bottom = pixels(descs[1])
+    left   = pixels(descs[2])
+    right  = pixels(descs[3])
+  else:
+    raise Exception('Invalid margins: %s' % desc)
+  return (top, bottom, left, right)
+
+def dimensions(desc):
+  dims = desc.split('x')
+  return int(dims[0]), int(dims[1])
+
 def parse(args):
-  top     = args['-t']
-  left    = args['-l']
-  right   = args['-r']
-  bottom  = args['-b']
-  if not right : right  = left
-  if not bottom: bottom = top
+  top, bottom, left, right = margins(args['-m'])
+  nrow, ncol = dimensions(args['-d'])
   return {
     'verbose' : args['-v'],
     'prefix'  : args['-p'],
-    'top'     : float(top)    * inch,
-    'left'    : float(left)   * inch,
-    'right'   : float(right)  * inch,
-    'bottom'  : float(bottom) * inch,
-    'qrsize'  : float(args['-q']) * inch,
-    'nchar'   : int(args['-c']),
-    'ncol'    : int(args['--ncol']),
-    'nrow'    : int(args['--nrow']),
-    'pdfpath' : args['<pdfpath>']
+    'top'     : top,
+    'bottom'  : bottom,
+    'left'    : left,
+    'right'   : right,
+    'side'    : pixels(args['-s']),
+    'nchar'   : int(args['-n']),
+    'nrow'    : nrow,
+    'ncol'    : ncol,
+    'pdfpath' : args['PDFPATH']
   }
 
 def main():
